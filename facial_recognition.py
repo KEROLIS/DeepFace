@@ -39,17 +39,38 @@ def add_p(person_name, face_image):
     person_name: str, name of the person
     face_image: str, path to the image of the face
     '''
-    # extract features from the face image
-    embedding_objs = DeepFace.represent(face_image, model=models[0])
-    features = embedding_objs[0]["embedding"]
 
-    # write the features to the database file
+    #check if the database is exsist 
+    file_found = False
     try:
-        with open('face_db.txt', 'a') as f:
-            f.write(f'{person_name}: {features}\n')
-    except FileNotFoundError:
-        raise HTTPException(
-            status_code=400, detail="Error while adding the person features ")
+        with open("face_db.txt", "r") as f:
+            lines = f.readlines()
+            file_found =True
+    except:
+        file_found=False
+
+    recognized = None
+
+    # check if the person is exsist in the database before 
+    if file_found:
+        recognized = recognize_p(face_image)
+
+    if recognized is None :
+        # extract features from the face image
+        embedding_objs = DeepFace.represent(face_image, model=models[0])
+        features = embedding_objs[0]["embedding"]
+
+                # write the features to the database file
+        try:
+            with open('face_db.txt', 'a') as f:
+                f.write(f'{person_name}: {features}\n')
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=400, detail="Error while adding the person features ")
+        return False
+
+    else:
+        return True
 
 
 def delete_p(person_name):
@@ -75,7 +96,7 @@ def delete_p(person_name):
     return person_found
 
 
-def recognize_p(face_image, distance_metric, threshold):
+def recognize_p(face_image, distance_metric='cosin', threshold=None):
     '''
     Recognize a person in the image
     face_image: str, path to the image of the face

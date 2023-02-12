@@ -13,8 +13,8 @@ async def add_person(person_name: str, file: UploadFile):
          function from the facial_recognition module. It then returns a message confirming that the person was added to the database.
     '''
     face_image = cv2.imdecode(np.frombuffer(await file.read(), np.uint8), -1)
-    add_p(person_name, face_image)
-    return {"message": f"Person {person_name} added to the database"}
+    recognized = add_p(person_name, face_image)
+    return {"message": f"Person {person_name} added to the database"} if not recognized else {"message": f" this Person was added before to the database"}
 
 
 @app.delete("/delete_person/{person_name}")
